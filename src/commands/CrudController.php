@@ -289,6 +289,46 @@ class CrudController extends BaseCrudController
     }
     
     /**
+     *
+     * Convert MySQL Datatype to PHP Datatype
+     *
+     * @param $mysqlDataType
+     * @return bool|mixed
+     */
+    public function getPhpDataType($mysqlDataType)
+    {
+        /*
+         * Map MySQL datatype to PHP datatype (MySQL: Left   /   Php: Right)
+         * http://php.net/manual/en/mysqli-result.fetch-field-direct.php
+         */
+        $dataTypeMap =
+            [
+                'tinyint' => 'integer',
+                'smallint' => 'integer',
+                'int' => 'integer',
+                'float' => 'double',
+                'double' => 'double',
+                'timestamp' => 'integer',
+                'bigint' => 'integer',
+                'mediumint' => 'integer',
+                'date' => 'string',
+                'time' => 'string',
+                'datetime' => 'string',
+                'year' => 'string',
+                'bit' => 'boolean',
+                'text' => 'string',
+                'varchar' => 'string',
+                'char' => 'string',
+                'decimal' => 'double',
+            ];
+
+        if (!empty($mysqlDataType) && isset($data_type_map[strtolower($mysqlDataType)]))
+            return $dataTypeMap[strtolower($mysqlDataType)];
+
+        return $mysqlDataType;
+    }
+    
+    /**
      * Generate the model content based on its view file.
      *
      * @param string $fileNamepsace
@@ -308,7 +348,8 @@ class CrudController extends BaseCrudController
         $properties = [];
         $ngrestFieldConfig = [];
         foreach ($schema->columns as $k => $v) {
-            $properties[$v->name] = $v->type;
+            $property_type = $this->getPhpDataType($v->type);
+            $properties[$v->name] = !empty($property_type) ? $property_type : $v->type;
             if ($v->isPrimaryKey) {
                 continue;
             }
